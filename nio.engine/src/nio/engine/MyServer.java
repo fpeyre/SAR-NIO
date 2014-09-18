@@ -1,6 +1,9 @@
 package nio.engine;
 
 import java.io.IOException;
+import java.net.InetSocketAddress;
+import java.net.SocketAddress;
+import java.nio.channels.ServerSocketChannel;
 
 
 
@@ -10,12 +13,9 @@ import java.io.IOException;
  */
 
 public class MyServer extends NioServer {
-	MyChannel channel;
 	int port;
-
 	public MyServer(int port) {
 		super();
-		this.channel = new MyChannel();
 		this.port = port;
 	}
 
@@ -33,7 +33,10 @@ public class MyServer extends NioServer {
 	@Override
 	public void close() {
 		try {
-			this.channel.getChannel().close();
+			ServerSocketChannel serverChannel = ServerSocketChannel.open();
+			SocketAddress myAdress = new InetSocketAddress(this.port);
+			serverChannel.socket().bind(myAdress);
+			serverChannel.close();
 		} catch (IOException e) {
 			System.out.println("Erreur close MyServer : "+e.getMessage());
 		}

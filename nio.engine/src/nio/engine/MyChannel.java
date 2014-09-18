@@ -46,7 +46,7 @@ public class MyChannel extends NioChannel {
 		byte[] bytes = message.getBytes();
 		ByteBuffer src = ByteBuffer.allocate(bytes.length + 8);
 		src.put(bytes);
-		callback.deliver((NioChannel)this,src);
+		callback.deliver(this,src);
 	}
 
 	/**
