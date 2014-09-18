@@ -1,7 +1,11 @@
 package nio.engine;
 
+
 public class MyAcceptCallback implements AcceptCallback {
 
+	AcceptCallback accepted;
+	AcceptCallback closed;
+	
 	/**
 	 * Callback to notify about an accepted connection.
 	 * 
@@ -10,7 +14,10 @@ public class MyAcceptCallback implements AcceptCallback {
 	 */
 	@Override
 	public void accepted(NioServer server, NioChannel channel) {
-		// TODO Auto-generated method stub
+		// Condition du accepted entre server et channel à faire
+		
+		//Notification du status accepted
+		
 
 	}
 
@@ -25,12 +32,8 @@ public class MyAcceptCallback implements AcceptCallback {
 		if(!channel.getChannel().isOpen())
 		{
 			System.out.println("Le channel est fermé");
+			closed.notify();
 		}
-		else 
-		{
-			System.out.println("Le channel est ouvert");
-		}
-
 
 	}
 

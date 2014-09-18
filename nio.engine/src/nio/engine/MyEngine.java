@@ -13,8 +13,11 @@ import java.nio.channels.SocketChannel;
 import java.util.Iterator;
 import java.util.Set;
 
+import javax.security.auth.callback.CallbackHandler;
+
 public class MyEngine extends NioEngine {
 
+	protected CallbackHandler myCallbackHander;
 	Selector selector;
 
 	public MyEngine(int port) throws Exception {
