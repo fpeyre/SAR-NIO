@@ -22,6 +22,13 @@ public class MyEngine extends NioEngine {
 	Selector selector;
 	// buffers for writing data
 	Hashtable<SocketChannel,ByteBuffer> outBuffers;
+	
+	int stateReadingLength=1;
+	int stateReadingMsg=2;
+	int stateWritingLength=3;
+	int stateWritingMsg=4;
+	int currentReadState=stateReadingLength;
+	int currentWriteState=stateWritingMsg;
 		
 	public MyEngine(int port) throws Exception {
 		super();
@@ -128,7 +135,7 @@ public class MyEngine extends NioEngine {
 		if (mySocketChannel.finishConnect())
 		{
 			//Si la connexion a reussi
-			System.out.println("Connecté à la socket");
+			System.out.println("Connectï¿½ ï¿½ la socket");
 			mySocketChannel.register(selector, SelectionKey.OP_CONNECT);
 			callback.connected(channel);
 		}
@@ -201,12 +208,35 @@ public class MyEngine extends NioEngine {
 	private void handleRead(SelectionKey key) throws IOException{
 		
 		SocketChannel sChannel = (SocketChannel) key.channel();
-		ByteBuffer inBuffer = ByteBuffer.allocate(512);
+		ByteBuffer inBuffer=null;
+		int nbRead;
 		
-		int nbRead = 0;
-		
+		if(currentReadState==stateReadingLength){
+			nbRead=0;
+			ByteBuffer lenBuffer=ByteBuffer.allocate(4);
+			try{
+			nbRead=sChannel.read(lenBuffer);
+			}catch (IOException e) {
+				key.cancel();
+				sChannel.close();
+				System.out.println(e);
+				return;
+			}			
+			if(nbRead == -1) {
+				key.channel().close();
+				key.cancel();
+				return;
+			}
+			if(lenBuffer.remaining()==0){
+				int length= lenBuffer.getInt();
+				inBuffer = ByteBuffer.allocate(length);
+				lenBuffer.position(0);
+				currentReadState=stateReadingMsg;				
+			}			
+		}else if(currentReadState==stateReadingMsg){		
+		nbRead=0;		
 		try {
-			nbRead = sChannel.read(inBuffer);
+			 nbRead=sChannel.read(inBuffer);
 		} catch (IOException e) {
 			key.cancel();
 			sChannel.close();
@@ -218,10 +248,11 @@ public class MyEngine extends NioEngine {
 			key.channel().close();
 			key.cancel();
 			return;
-		}
-		
+		}}
+		if (inBuffer.remaining()==0){
 		System.out.println("Server[HandleRead]--> "+inBuffer.toString());
 		send(key, inBuffer.array());
+		}
 		
 	}
 
