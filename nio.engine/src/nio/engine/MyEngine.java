@@ -92,7 +92,7 @@ public class MyEngine extends NioEngine {
 		serverChannel.socket().bind(myAdress);
 		SocketChannel sc = channel.getChannel();
 		sc = serverChannel.accept();
-		if (sc == null)
+		if (sc != null)
 			callback.accepted(server, channel);
 
 		return server;
@@ -120,8 +120,9 @@ public class MyEngine extends NioEngine {
 		// bind the server socket to the specified address and port
 		InetSocketAddress isa = new InetSocketAddress(hostAddress, port);
 		mySocketChannel.bind(isa);
-
-		if (mySocketChannel.isConnected()) {
+		mySocketChannel.connect(isa);
+		if (mySocketChannel.finishConnect())
+		{
 			System.out.println("Connecté à la socket");
 			callback.connected(channel);
 		}
