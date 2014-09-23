@@ -27,8 +27,9 @@ public class MyEngine extends NioEngine {
 	int stateReadingMsg=2;
 	int stateWritingLength=3;
 	int stateWritingMsg=4;
+	int stateWriteDone=5;
 	int currentReadState=stateReadingLength;
-	int currentWriteState=stateWritingMsg;
+	int currentWriteState=stateWritingLength;
 		
 	public MyEngine(int port) throws Exception {
 		super();
@@ -209,11 +210,12 @@ public class MyEngine extends NioEngine {
 		
 		SocketChannel sChannel = (SocketChannel) key.channel();
 		ByteBuffer inBuffer=null;
+		ByteBuffer lenBuffer=ByteBuffer.allocate(4);
 		int nbRead;
 		
 		if(currentReadState==stateReadingLength){
 			nbRead=0;
-			ByteBuffer lenBuffer=ByteBuffer.allocate(4);
+			
 			try{
 			nbRead=sChannel.read(lenBuffer);
 			}catch (IOException e) {
@@ -267,10 +269,19 @@ public class MyEngine extends NioEngine {
 		SocketChannel sChannel = (SocketChannel) key.channel();
 
 		ByteBuffer outBuffer = outBuffers.get(sChannel);
+		ByteBuffer outLength=ByteBuffer.allocate(4);
+		int nbWrite=0;
 		
-		if(outBuffer.remaining() > 0) {
-
-			int nbWrite = 0;
+		if(currentWriteState==stateWritingLength){
+			sChannel.write(outLength);
+			if(outLength.remaining()==0)
+			{
+				currentWriteState=stateWritingMsg;
+			}
+		}
+		else if (currentWriteState==stateWritingMsg){
+			
+		if(outBuffer.remaining() > 0) {			
 			try {
 				nbWrite = sChannel.write(outBuffer);
 			} catch (IOException e) {
@@ -279,13 +290,18 @@ public class MyEngine extends NioEngine {
 				e.printStackTrace();
 				return;
 			}
+			if(outBuffer.remaining()==0){
+				currentWriteState=stateWriteDone;
+			}
 
 		}
+	}
 		
-		
+		if(currentWriteState==stateWriteDone){
 		System.out.println("Server[HandleWrite]--> "+outBuffer.toString());
 		outBuffer.clear();
 		key.interestOps(SelectionKey.OP_READ);
+		}
 		
 	}
 	
