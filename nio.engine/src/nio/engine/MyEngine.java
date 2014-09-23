@@ -14,15 +14,13 @@ import java.nio.channels.SocketChannel;
 import java.nio.channels.spi.SelectorProvider;
 import java.util.Hashtable;
 import java.util.Iterator;
-import javax.security.auth.callback.CallbackHandler;
 
 public class MyEngine extends NioEngine {
 
-	protected CallbackHandler myCallbackHander;
 	Selector selector;
 	// buffers for writing data
 	Hashtable<SocketChannel,ByteBuffer> outBuffers;
-	
+	int port;
 	int stateReadingLength=1;
 	int stateReadingMsg=2;
 	int stateWritingLength=3;
@@ -33,7 +31,11 @@ public class MyEngine extends NioEngine {
 		
 	public MyEngine(int port) throws Exception {
 		super();
+		
+		this.port=port;
+	
 		this.selector = SelectorProvider.provider().openSelector();
+		this.selector.wakeup();
 	}
 
 	/**
@@ -46,28 +48,34 @@ public class MyEngine extends NioEngine {
 		while (true) {
 			try {
 
-				selector.select();
+				//System.out.println("Nombre de clé selectionnée au cours de la loop : "+selector.select());
 
 				Iterator<?> selectedKeys = this.selector.selectedKeys().iterator();
-
+				//System.out.println("Selector initialisé, Itérator défini, clé suivantes: "+selectedKeys.hasNext());
+				//System.out.println("Boucle sur les selected Keys : ");
 				while (selectedKeys.hasNext()) {
-
+					
 					SelectionKey key = (SelectionKey) selectedKeys.next();
 					selectedKeys.remove();
-
+					
 					if (!key.isValid()) {
+						System.out.println("Clé invalide");
 						continue;
 
 					} else if (key.isAcceptable()) {
+						System.out.println("Clé acceptable");
 						handleAccept(key);
 
 					} else if (key.isReadable()) {
+						System.out.println("Clé Lisible");
 						handleRead(key);
 
 					} else if (key.isWritable()) {
+						System.out.println("Clé Inscriptible");
 						handleWrite(key);
 
 					} else if (key.isConnectable()) {
+						System.out.println("Clé connectable");
 						handleConnection(key);
 					} else 
 						System.out.println("  ---> unknow key=");
@@ -75,6 +83,7 @@ public class MyEngine extends NioEngine {
 			} catch (Exception e) {
 				e.printStackTrace();
 			}
+		//System.out.println("Fin du tour de boucle ");
 		}
 	}
 
@@ -93,16 +102,23 @@ public class MyEngine extends NioEngine {
 			throws IOException {
 		MyServer server = new MyServer(port);
 		MyChannel channel = new MyChannel();
+		channel.getChannel().configureBlocking(false);
 		System.out.println("Listening on port " + port);
 		ServerSocketChannel serverChannel = ServerSocketChannel.open();
 		SocketAddress myAdress = new InetSocketAddress(port);
 		serverChannel.socket().bind(myAdress);
 		SocketChannel sc = channel.getChannel();
+		System.out.println("Recupération du channel reussi, acceptation de connection");
 		sc = serverChannel.accept();
+		System.out.println("Connection acceptée");
 		if (sc != null)
 		{
-			sc.register(selector, SelectionKey.OP_ACCEPT);
-			callback.accepted(server, channel);
+			System.out.println("Serveur channel non null");
+			sc.configureBlocking(false);
+			SelectionKey key = sc.register(selector, SelectionKey.OP_READ);
+			send(key, (new String("Plop").getBytes()));
+			//sc.register(this.selector, SelectionKey.OP_ACCEPT);
+			//callback.accepted(server, channel);
 		}
 			
 
@@ -128,17 +144,18 @@ public class MyEngine extends NioEngine {
 		mySocketChannel = SocketChannel.open();
 		mySocketChannel.configureBlocking(false);
 
-		// bind the server socket to the specified address and port
-		InetSocketAddress isa = new InetSocketAddress(hostAddress, port);
-		mySocketChannel.bind(isa);
-		mySocketChannel.connect(isa);
+		//connection to the hostAddress at the given port
+		mySocketChannel.connect(new InetSocketAddress(hostAddress, port));
 		
 		if (mySocketChannel.finishConnect())
 		{
 			//Si la connexion a reussi
-			System.out.println("Connectï¿½ ï¿½ la socket");
-			mySocketChannel.register(selector, SelectionKey.OP_CONNECT);
-			callback.connected(channel);
+			System.out.println("Connection à la socket reussi");
+			mySocketChannel.register(this.selector, SelectionKey.OP_CONNECT);
+			ByteBuffer bb = ByteBuffer.wrap("Test message".getBytes()); 
+			outBuffers.put(mySocketChannel, bb);
+			System.out.println("Socket Enregistré, appel au callback(callback commenté)");
+			//callback.connected(channel);
 		}
 	}
 	
@@ -307,7 +324,8 @@ public class MyEngine extends NioEngine {
 	
 public void send(SelectionKey key, byte[] data) {
 		
-		ByteBuffer outBuffer = outBuffers.get(key.channel());
+		ByteBuffer outBuffer = outBuffers.get(key.channel()); 
+		//outBuffers null, probleme de mapping du channel avec son buffer
 		outBuffer = ByteBuffer.wrap(data);
 		key.interestOps(SelectionKey.OP_WRITE);
 		
