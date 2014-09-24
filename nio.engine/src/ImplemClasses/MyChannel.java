@@ -24,7 +24,7 @@ enum StatesForWriting {
 public class MyChannel extends NioChannel {
 
 	SocketChannel mySocketChannel;
-	MyEngine engine;
+	MyEngine myEngine;
 	DeliverCallback callback;
 
 	
@@ -37,10 +37,10 @@ public class MyChannel extends NioChannel {
 	StatesForReading currentReadState = StatesForReading.stateReadingLength;
 	StatesForWriting currentWriteState = StatesForWriting.stateWritingLength;
 
-	public MyChannel(SocketChannel mySocketChannel, MyEngine engine) {
+	public MyChannel(SocketChannel mySocketChannel, MyEngine myEngine) {
 		super();
 		this.mySocketChannel = mySocketChannel;
-		this.engine = engine;
+		this.myEngine = myEngine;
 	}
 
 	/**
@@ -90,11 +90,9 @@ public class MyChannel extends NioChannel {
 	@Override
 	public void send(ByteBuffer buf) {
 
-		try {
-			this.mySocketChannel.write(buf);
-		} catch (IOException e) {
-			System.out.println("Problème envoi du buffer");
-		}
+			bufferSortie.add(buf);
+			myEngine.askWrite(this);
+		
 	}
 
 	/**
@@ -184,8 +182,7 @@ public class MyChannel extends NioChannel {
 	
 	
 	public boolean Automata_for_write() {
-		//retourne true si il n'y a plus rien a envoyer
-		//Penser à continuer l'envoi si il reste de la place dans le bufferNio
+		//Si il n'y a plus rien à envoyé, on retourne true
 		if(currentWriteState == StatesForWriting.stateWritingDone)
 		{
 			bufferSortieCourant = bufferSortie.get(0);
@@ -197,12 +194,11 @@ public class MyChannel extends NioChannel {
 			currentWriteState = StatesForWriting.stateWritingLength;
 		}
 		
-		if (currentWriteState == StatesForWriting.stateWritingLength) { // Lecture de la taille totale du message 
+		if (currentWriteState == StatesForWriting.stateWritingLength) { 
 			try {
 				mySocketChannel.write(longueurBufferSortie);
 			} catch (IOException e) {
-				e.printStackTrace();
-				System.exit(1);
+				System.out.println("Erreur IO : "+e.getMessage());
 			}
 			if(longueurBufferSortie.remaining()==0){
 				currentWriteState = StatesForWriting.stateWritingMsg;

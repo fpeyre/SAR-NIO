@@ -23,6 +23,15 @@ public class MyServer extends NioServer {
 		super();
 	}
 
+	public MyServer(ServerSocketChannel myServerSocketChannel) {
+		this.myServerSocketChannel = myServerSocketChannel;
+	}
+
+	public MyServer(ServerSocketChannel myServerSocketChannel, AcceptCallback callback) {
+		this.myServerSocketChannel = myServerSocketChannel;
+		this.myCallback = callback;
+	}
+	
 	/**
 	 * @return the port onto which connections are accepted.
 	 */

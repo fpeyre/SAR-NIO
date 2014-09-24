@@ -113,7 +113,7 @@ public class MyEngine extends NioEngine {
 		server.setAcceptCallback(callback);
 		
 		serverChannel.register(this.selector, SelectionKey.OP_ACCEPT);			
-
+		System.out.println("ServerChannel bindé, enregistré dans le selector");
 		return server;
 	}
 
@@ -136,10 +136,10 @@ public class MyEngine extends NioEngine {
 		
 		mySocketChannel.register(this.selector, SelectionKey.OP_CONNECT);
 		//connection to the hostAddress at the given port
-		mySocketChannel.connect(new InetSocketAddress(hostAddress, port));
+		System.out.println("Connection reussi : "+mySocketChannel.connect(new InetSocketAddress(hostAddress, port)));
 		
-		//MappingConnectCallback.put(mySocketChannel, callback);
-		//callback.connected(channel);
+		MappingConnectCallback.put(mySocketChannel, callback);
+
 	}
 	
 	/**
@@ -222,8 +222,6 @@ public class MyEngine extends NioEngine {
 		boolean outBufferIsEmpty = myChannel.Automata_for_write();
 		
 		if(outBufferIsEmpty) 
-			// Pour retirer l'interet en ecriture, uniquement dans le cas où plus rien à ecrire
-			// Dependera de la valeur de retour de automate
 			key.interestOps(key.interestOps() & ~SelectionKey.OP_WRITE);
 		
 	}
