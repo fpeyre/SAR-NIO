@@ -1,9 +1,9 @@
-package nio.engine;
+package ImplemClasses;
 
 import java.io.IOException;
-import java.net.InetSocketAddress;
-import java.net.SocketAddress;
 import java.nio.channels.ServerSocketChannel;
+
+import nio.engine.*;
 
 
 
@@ -12,11 +12,15 @@ import java.nio.channels.ServerSocketChannel;
  * which the connection was accepted as well as the ability to close that
  */
 
+
+
 public class MyServer extends NioServer {
-	int port;
-	public MyServer(int port) {
+	
+	ServerSocketChannel myServerSocketChannel;
+	AcceptCallback myCallback;
+	
+	public MyServer() {
 		super();
-		this.port = port;
 	}
 
 	/**
@@ -24,7 +28,7 @@ public class MyServer extends NioServer {
 	 */
 	@Override
 	public int getPort() {
-		return port;
+		return myServerSocketChannel.socket().getLocalPort();
 	}
 	
 	  /**
@@ -33,14 +37,23 @@ public class MyServer extends NioServer {
 	@Override
 	public void close() {
 		try {
-			ServerSocketChannel serverChannel = ServerSocketChannel.open();
-			SocketAddress myAdress = new InetSocketAddress(this.port);
-			serverChannel.socket().bind(myAdress);
-			serverChannel.close();
+			this.myServerSocketChannel.close();
 		} catch (IOException e) {
 			System.out.println("Erreur close MyServer : "+e.getMessage());
 		}
 
+	}
+	
+	public void setSSC(ServerSocketChannel ssc){
+		this.myServerSocketChannel=ssc;
+	}
+	
+	public void setAcceptCallback(AcceptCallback cb){
+		this.myCallback=cb;
+	}
+
+	public AcceptCallback getAcceptCallback(){
+		return myCallback;
 	}
 
 }
