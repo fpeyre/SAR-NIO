@@ -65,7 +65,7 @@ public class ClientTest implements Runnable, ConnectCallback, DeliverCallback {
 
 	@Override
 	public void deliver(NioChannel channel, ByteBuffer bytes) {
-		System.out.println("Message recu :"+ new String(bytes.array()));
+		System.out.println("Coté client : Message envoyé : "+ new String(bytes.array()));
 		String message = "Message n°"+numMessage;
 		numMessage++;
 		channel.send(message.getBytes(),0,message.getBytes().length);

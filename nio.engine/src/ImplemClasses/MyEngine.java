@@ -63,19 +63,15 @@ public class MyEngine extends NioEngine {
 						continue;
 
 					} else if (key.isAcceptable()) {
-						System.out.println("Clé acceptable");
 						handleAccept(key);
 
 					} else if (key.isReadable()) {
-						System.out.println("Clé Lisible");
 						handleRead(key);
 
 					} else if (key.isWritable()) {
-						System.out.println("Clé Inscriptible");
 						handleWrite(key);
 
 					} else if (key.isConnectable()) {
-						System.out.println("Clé connectable");
 						handleConnection(key);
 					} else
 						System.out.println("  ---> unknow key=");
@@ -153,7 +149,6 @@ public class MyEngine extends NioEngine {
 	 *            key of the channel on which a connection is requested
 	 */
 	private void handleAccept(SelectionKey key) {
-		System.out.println("----------HandleAccept------------");
 		SocketChannel socketChannel = null;
 		ServerSocketChannel serverSocketChannel = (ServerSocketChannel) key
 				.channel();
@@ -176,7 +171,6 @@ public class MyEngine extends NioEngine {
 
 		System.out.println("Lancement du callback");
 		callback.accepted(MappingServers.get(serverSocketChannel), myChannel);
-		System.out.println("-----------------------------------");
 		}
 		catch(IOException e){
 			System.out.println("IO Exception : "+e.getMessage());
@@ -190,7 +184,6 @@ public class MyEngine extends NioEngine {
 	 *            key of the channel on which a connection is requested
 	 */
 	private void handleConnection(SelectionKey key) {
-		System.out.println("----------HandleConnection------------");
 		SocketChannel socketChannel = (SocketChannel) key.channel();
 
 		try {
@@ -207,7 +200,6 @@ public class MyEngine extends NioEngine {
 		MyChannel myChannel = new MyChannel(socketChannel, this);
 		MappingChannels.put(socketChannel, myChannel);
 		MappingConnectCallback.get(socketChannel).connected(myChannel);
-		System.out.println("-----------------------------------");
 	}
 
 	/**
@@ -219,13 +211,10 @@ public class MyEngine extends NioEngine {
 	 */
 	private void handleRead(SelectionKey key) throws IOException {
 
-		System.out.println("------------handleRead----------------");
-
 		SocketChannel socketChannel = (SocketChannel) key.channel();
 
 		MappingChannels.get(socketChannel).Automata_for_read();
 
-		System.out.println("--------------------------------------");
 
 	}
 
