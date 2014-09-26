@@ -6,7 +6,7 @@ public class MainTest {
 		new Thread(new ServerTest(3201)).start();
 
 		try {
-			Thread.sleep(1000);
+			Thread.sleep(5000);
 		} catch (InterruptedException e) {
 			System.out.println("Exception d'interruption : "+e.getMessage());
 		}

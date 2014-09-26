@@ -5,6 +5,7 @@ import java.net.InetSocketAddress;
 import java.nio.ByteBuffer;
 import java.nio.channels.SocketChannel;
 import java.util.ArrayList;
+import java.util.LinkedList;
 
 import nio.engine.*;
 
@@ -28,11 +29,11 @@ public class MyChannel extends NioChannel {
 	DeliverCallback callback;
 
 	
-	ArrayList<ByteBuffer> bufferSortie;
-	ByteBuffer bufferSortieCourant;
-	ByteBuffer longueurBufferSortie;
-	ByteBuffer lengthBuffer;
-	ByteBuffer readingBuffer = null;
+	LinkedList<ByteBuffer> bufferSortie;
+	private ByteBuffer bufferSortieCourant;
+	private ByteBuffer longueurBufferSortie;
+	private ByteBuffer lengthBuffer;
+	private ByteBuffer readingBuffer = null;
 
 	StatesForReading currentReadState = StatesForReading.stateReadingLength;
 	StatesForWriting currentWriteState = StatesForWriting.stateWritingLength;
@@ -41,6 +42,9 @@ public class MyChannel extends NioChannel {
 		super();
 		this.mySocketChannel = mySocketChannel;
 		this.myEngine = myEngine;
+		longueurBufferSortie = ByteBuffer.allocate(4);
+		lengthBuffer= ByteBuffer.allocate(4);
+		bufferSortie = new LinkedList<ByteBuffer>();
 	}
 
 	/**
@@ -107,12 +111,12 @@ public class MyChannel extends NioChannel {
 	public void send(byte[] bytes, int offset, int length) {
 
 		int i;
-		ByteBuffer src = ByteBuffer.allocate(bytes.length + 8);
+		ByteBuffer src = ByteBuffer.allocate(length);
 
 		for (i = offset; i < offset + length; i++) {
 			src.put(bytes[i]);
 		}
-
+		src.toString();
 		send(src);
 
 	}
@@ -185,8 +189,7 @@ public class MyChannel extends NioChannel {
 		//Si il n'y a plus rien à envoyé, on retourne true
 		if(currentWriteState == StatesForWriting.stateWritingDone)
 		{
-			bufferSortieCourant = bufferSortie.get(0);
-			bufferSortie.remove(0);
+			bufferSortieCourant = bufferSortie.pop();
 			bufferSortieCourant.position(0);
 			longueurBufferSortie.position(0);
 			longueurBufferSortie.putInt(bufferSortieCourant.capacity());

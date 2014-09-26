@@ -22,23 +22,21 @@ public class MyEngine extends NioEngine {
 
 	Selector selector;
 	// buffers for writing data
-	Hashtable<SocketChannel,ByteBuffer> outBuffers;
-	
+	Hashtable<SocketChannel, ByteBuffer> outBuffers;
+
 	Hashtable<SocketChannel, ConnectCallback> MappingConnectCallback;
 	Hashtable<ServerSocketChannel, MyServer> MappingServers;
 	Hashtable<SocketChannel, MyChannel> MappingChannels;
-	
-	
 
-		
 	public MyEngine() throws Exception {
 		super();
 		this.selector = Selector.open();
-		
-		//Initialisation des différentes Hashtables
-		MappingConnectCallback = new Hashtable<SocketChannel, ConnectCallback>() ;
+
+		// Initialisation des différentes Hashtables
+		outBuffers = new Hashtable<SocketChannel, ByteBuffer>();
+		MappingConnectCallback = new Hashtable<SocketChannel, ConnectCallback>();
 		MappingServers = new Hashtable<ServerSocketChannel, MyServer>();
-		MappingChannels = new Hashtable<SocketChannel, MyChannel>() ;
+		MappingChannels = new Hashtable<SocketChannel, MyChannel>();
 	}
 
 	/**
@@ -48,16 +46,18 @@ public class MyEngine extends NioEngine {
 	 */
 	@Override
 	public void mainloop() {
+
 		while (true) {
 			try {
+				selector.select();
+				Iterator<?> selectedKeys = this.selector.selectedKeys()
+						.iterator();
 
-				Iterator<?> selectedKeys = this.selector.selectedKeys().iterator();
-				
 				while (selectedKeys.hasNext()) {
-					
+
 					SelectionKey key = (SelectionKey) selectedKeys.next();
 					selectedKeys.remove();
-					
+
 					if (!key.isValid()) {
 						System.out.println("Clé invalide");
 						continue;
@@ -77,7 +77,7 @@ public class MyEngine extends NioEngine {
 					} else if (key.isConnectable()) {
 						System.out.println("Clé connectable");
 						handleConnection(key);
-					} else 
+					} else
 						System.out.println("  ---> unknow key=");
 				}
 			} catch (Exception e) {
@@ -100,20 +100,22 @@ public class MyEngine extends NioEngine {
 	public NioServer listen(int port, AcceptCallback callback)
 			throws IOException {
 		MyServer server = new MyServer();
-		
+
 		System.out.println("Listening on port " + port);
-		
+
 		ServerSocketChannel serverChannel = ServerSocketChannel.open();
 		serverChannel.configureBlocking(false);
-		
+
 		InetSocketAddress myAdress = new InetSocketAddress("localhost", port);
 		serverChannel.socket().bind(myAdress);
 
 		server.setSSC(serverChannel);
 		server.setAcceptCallback(callback);
-		
-		serverChannel.register(this.selector, SelectionKey.OP_ACCEPT);			
+
+		serverChannel.register(this.selector, SelectionKey.OP_ACCEPT);
 		System.out.println("ServerChannel bindé, enregistré dans le selector");
+		
+		MappingServers.put(serverChannel, server);
 		return server;
 	}
 
@@ -131,108 +133,127 @@ public class MyEngine extends NioEngine {
 			ConnectCallback callback) throws UnknownHostException,
 			SecurityException, IOException {
 
-		SocketChannel mySocketChannel= SocketChannel.open();
+		SocketChannel mySocketChannel = SocketChannel.open();
 		mySocketChannel.configureBlocking(false);
-		
+
 		mySocketChannel.register(this.selector, SelectionKey.OP_CONNECT);
-		//connection to the hostAddress at the given port
-		System.out.println("Connection reussi : "+mySocketChannel.connect(new InetSocketAddress(hostAddress, port)));
-		
+		// connection to the hostAddress at the given port
+		System.out.println("Connection reussi : "
+				+ mySocketChannel.connect(new InetSocketAddress(hostAddress,
+						port)));
+
 		MappingConnectCallback.put(mySocketChannel, callback);
 
 	}
-	
+
 	/**
 	 * Accept a connection and make it non-blocking
-	 * @param the key of the channel on which a connection is requested
+	 * 
+	 * @param the
+	 *            key of the channel on which a connection is requested
 	 */
 	private void handleAccept(SelectionKey key) {
-		System.out.println("Server[HandleAccept]");
+		System.out.println("----------HandleAccept------------");
 		SocketChannel socketChannel = null;
-		ServerSocketChannel serverSocketChannel = (ServerSocketChannel) key.channel();
-		try {
-			socketChannel = serverSocketChannel.accept();
-			socketChannel.configureBlocking(false);
-		} catch (IOException e) {
-			// as if there was no accept done
-			return;
-		}
+		ServerSocketChannel serverSocketChannel = (ServerSocketChannel) key
+				.channel();
+		try
+		{
+		System.out.println("On va accepter se mettre en accept de connection");
+		socketChannel = serverSocketChannel.accept();
+		socketChannel.configureBlocking(false);
 
-		// be notified when there is incoming data 
-		try {
-			socketChannel.register(this.selector, SelectionKey.OP_READ);
-		} catch (ClosedChannelException e) {
-			System.out.println("Problème fermeture channel "+e.getMessage());
-		}
-		AcceptCallback callback = MappingServers.get(serverSocketChannel).getAcceptCallback();
+		System.out.println("On va enregistrer la connection");
+		socketChannel.register(this.selector, SelectionKey.OP_READ);
+		
+		System.out.println("Enregistrement du callback");
+		MyServer server = MappingServers.get(serverSocketChannel);
+		AcceptCallback callback = server.getAcceptCallback();
+		
+		System.out.println("Création du channel et enregistrement dans la table");
 		MyChannel myChannel = new MyChannel(socketChannel, this);
 		MappingChannels.put(socketChannel, myChannel);
-		
 
+		System.out.println("Lancement du callback");
 		callback.accepted(MappingServers.get(serverSocketChannel), myChannel);
-		outBuffers.put(socketChannel, ByteBuffer.allocate(128));
+		System.out.println("-----------------------------------");
+		}
+		catch(IOException e){
+			System.out.println("IO Exception : "+e.getMessage());
+		}
 	}
-
 
 	/**
 	 * Finish to establish a connection
-	 * @param the key of the channel on which a connection is requested
+	 * 
+	 * @param the
+	 *            key of the channel on which a connection is requested
 	 */
 	private void handleConnection(SelectionKey key) {
-		System.out.println("Server[HandleConnection]");
+		System.out.println("----------HandleConnection------------");
 		SocketChannel socketChannel = (SocketChannel) key.channel();
 
 		try {
+			System.out.println("On réalise le finishConnect");
 			socketChannel.finishConnect();
 		} catch (IOException e) {
 			// cancel the channel's registration with our selector
-			System.out.println(e);
+			System.out.println("IO Exception : " + e.getMessage());
 			key.cancel();
 			return;
 		}
-		key.interestOps(SelectionKey.OP_READ);	
-		MyChannel myChannel  = new MyChannel(socketChannel, this);
+		System.out.println("On change l'interestOps de la clé");
+		key.interestOps(SelectionKey.OP_READ);
+		MyChannel myChannel = new MyChannel(socketChannel, this);
 		MappingChannels.put(socketChannel, myChannel);
 		MappingConnectCallback.get(socketChannel).connected(myChannel);
+		System.out.println("-----------------------------------");
 	}
-
 
 	/**
 	 * Handle incoming data event
-	 * @param the key of the channel on which the incoming data waits to be received 
+	 * 
+	 * @param the
+	 *            key of the channel on which the incoming data waits to be
+	 *            received
 	 */
-	private void handleRead(SelectionKey key) throws IOException{
-		
+	private void handleRead(SelectionKey key) throws IOException {
+
+		System.out.println("------------handleRead----------------");
+
 		SocketChannel socketChannel = (SocketChannel) key.channel();
 
 		MappingChannels.get(socketChannel).Automata_for_read();
-		
-	}
 
+		System.out.println("--------------------------------------");
+
+	}
 
 	/**
 	 * Handle outgoing data event
-	 * @param the key of the channel on which data can be sent 
-	 * @throws IOException 
+	 * 
+	 * @param the
+	 *            key of the channel on which data can be sent
+	 * @throws IOException
 	 */
 	private void handleWrite(SelectionKey key) throws IOException {
-		
+
 		SocketChannel socketChannel = (SocketChannel) key.channel();
 		MyChannel myChannel = MappingChannels.get(socketChannel);
 		boolean outBufferIsEmpty = myChannel.Automata_for_write();
-		
-		if(outBufferIsEmpty) 
+
+		if (outBufferIsEmpty)
 			key.interestOps(key.interestOps() & ~SelectionKey.OP_WRITE);
-		
+
 	}
 
-public void askWrite (MyChannel myChannel)
-{
-	try {
-		myChannel.getChannel().register(this.selector, SelectionKey.OP_WRITE | SelectionKey.OP_READ);
-	} catch (ClosedChannelException e) {
-		e.printStackTrace();
+	public void askWrite(MyChannel myChannel) {
+		try {
+			myChannel.getChannel().register(this.selector,
+					SelectionKey.OP_WRITE | SelectionKey.OP_READ);
+		} catch (ClosedChannelException e) {
+			e.printStackTrace();
+		}
 	}
-}
 
 }

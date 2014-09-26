@@ -57,7 +57,7 @@ public class ServerTest implements Runnable,AcceptCallback,DeliverCallback {
 	@Override
 	public void deliver(NioChannel channel, ByteBuffer bytes) {
 		System.out.println("Message reçu :"+ new String(bytes.array()));
-		String ping = "Pong"+numMessage;
+		String ping = "Message n°"+numMessage;
 		numMessage++;
 		channel.send(ping.getBytes(),0,ping.getBytes().length);
 	}
