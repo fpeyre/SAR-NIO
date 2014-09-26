@@ -35,8 +35,8 @@ public class MyChannel extends NioChannel {
 	private ByteBuffer lengthBuffer;
 	private ByteBuffer readingBuffer = null;
 
-	StatesForReading currentReadState = StatesForReading.stateReadingLength;
-	StatesForWriting currentWriteState = StatesForWriting.stateWritingLength;
+	StatesForReading currentReadState = StatesForReading.stateReadingDone;
+	StatesForWriting currentWriteState = StatesForWriting.stateWritingDone;
 
 	public MyChannel(SocketChannel mySocketChannel, MyEngine myEngine) {
 		super();
@@ -157,7 +157,7 @@ public class MyChannel extends NioChannel {
 			if (lengthBuffer.remaining() == 0) {
 				lengthBuffer.position(0);
 				int messageLenght = lengthBuffer.getInt();
-				lengthBuffer = ByteBuffer.allocate(messageLenght);
+				readingBuffer = ByteBuffer.allocate(messageLenght);
 				currentReadState = StatesForReading.stateReadingMsg;
 			}
 		}
