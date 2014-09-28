@@ -24,7 +24,7 @@ public class MyEngine extends NioEngine {
 	// buffers for writing data
 	Hashtable<SocketChannel, ByteBuffer> outBuffers;
 
-	Hashtable<SocketChannel, ConnectCallback> MappingConnectCallback;
+	private Hashtable<SocketChannel, ConnectCallback> MappingConnectCallback;
 	private Hashtable<ServerSocketChannel, MyServer> MappingServers;
 	Hashtable<SocketChannel, MyChannel> MappingChannels;
 
@@ -34,7 +34,7 @@ public class MyEngine extends NioEngine {
 
 		// Initialisation des diff�rentes Hashtables
 		outBuffers = new Hashtable<SocketChannel, ByteBuffer>();
-		MappingConnectCallback = new Hashtable<SocketChannel, ConnectCallback>();
+		setMappingConnectCallback(new Hashtable<SocketChannel, ConnectCallback>());
 		setMappingServers(new Hashtable<ServerSocketChannel, MyServer>());
 		MappingChannels = new Hashtable<SocketChannel, MyChannel>();
 	}
@@ -138,7 +138,7 @@ public class MyEngine extends NioEngine {
 				+ mySocketChannel.connect(new InetSocketAddress(hostAddress,
 						port)));
 
-		MappingConnectCallback.put(mySocketChannel, callback);
+		getMappingConnectCallback().put(mySocketChannel, callback);
 
 	}
 
@@ -199,7 +199,7 @@ public class MyEngine extends NioEngine {
 		key.interestOps(SelectionKey.OP_READ);
 		MyChannel myChannel = new MyChannel(socketChannel, this);
 		MappingChannels.put(socketChannel, myChannel);
-		MappingConnectCallback.get(socketChannel).connected(myChannel);
+		getMappingConnectCallback().get(socketChannel).connected(myChannel);
 	}
 
 	/**
@@ -251,6 +251,14 @@ public class MyEngine extends NioEngine {
 
 	public void setMappingServers(Hashtable<ServerSocketChannel, MyServer> mappingServers) {
 		MappingServers = mappingServers;
+	}
+
+	public Hashtable<SocketChannel, ConnectCallback> getMappingConnectCallback() {
+		return MappingConnectCallback;
+	}
+
+	public void setMappingConnectCallback(Hashtable<SocketChannel, ConnectCallback> mappingConnectCallback) {
+		MappingConnectCallback = mappingConnectCallback;
 	}
 
 }

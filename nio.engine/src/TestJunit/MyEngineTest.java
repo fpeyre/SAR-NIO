@@ -5,6 +5,7 @@ import static org.junit.Assert.*;
 import java.net.InetAddress;
 
 import nio.engine.AcceptCallback;
+import nio.engine.ConnectCallback;
 
 import org.junit.Test;
 
@@ -21,17 +22,21 @@ public class MyEngineTest {
 	public void testListen() throws Exception {
 		MyEngine testEngine=new MyEngine();
 		AcceptCallback testCallback = null;
-		testEngine.listen(1024, testCallback);
+		testEngine.setMappingServers(null);
+		testEngine.listen(3021, testCallback);
 		assertTrue("Ajout du serveur a MappingServers",!testEngine.getMappingServers().isEmpty());
 	}
 
 	@Test
 	public void testConnect() throws Exception {
 		MyEngine testEngine=new MyEngine();
-		AcceptCallback testCallback = null;
-		InetAddress testAdress=new InetAddress();
-		testEngine.listen(1024, testCallback);
-		assertTrue("Ajout du serveur a MappingServers",!testEngine.getMappingServers().isEmpty());
+		ConnectCallback testCallback = null;
+		String adresse ="localhost";
+		InetAddress testAdress=null;
+		testAdress.getByName(adresse);
+		
+		testEngine.connect(testAdress,3021,testCallback);
+		assertTrue("Ajout du socketChannel a MappingConnectCallback",!testEngine.getMappingConnectCallback().isEmpty());
 	}
 
 	@Test
