@@ -29,7 +29,7 @@ public class MyChannel extends NioChannel {
 	DeliverCallback callback;
 
 	
-	LinkedList<ByteBuffer> bufferSortie;
+	private LinkedList<ByteBuffer> bufferSortie;
 	private ByteBuffer bufferSortieCourant;
 	private ByteBuffer longueurBufferSortie;
 	private ByteBuffer lengthBuffer;
@@ -44,7 +44,7 @@ public class MyChannel extends NioChannel {
 		this.myEngine = myEngine;
 		longueurBufferSortie = ByteBuffer.allocate(4);
 		lengthBuffer= ByteBuffer.allocate(4);
-		bufferSortie = new LinkedList<ByteBuffer>();
+		setBufferSortie(new LinkedList<ByteBuffer>());
 	}
 
 	/**
@@ -79,7 +79,7 @@ public class MyChannel extends NioChannel {
 		try {
 			myAdress = (InetSocketAddress) mySocketChannel.getRemoteAddress();
 		} catch (IOException e) {
-			System.out.println("Problème récupération remoteAdress");
+			System.out.println("Problï¿½me rï¿½cupï¿½ration remoteAdress");
 		}
 
 		return myAdress;
@@ -94,7 +94,7 @@ public class MyChannel extends NioChannel {
 	@Override
 	public void send(ByteBuffer buf) {
 
-			bufferSortie.add(buf);
+			getBufferSortie().add(buf);
 			myEngine.askWrite(this);
 		
 	}
@@ -133,7 +133,7 @@ public class MyChannel extends NioChannel {
 	}
 
 	public void Automata_for_read() {
-		if (currentReadState == StatesForReading.stateReadingDone)// Réinitialisation
+		if (currentReadState == StatesForReading.stateReadingDone)// Rï¿½initialisation
 																	// des
 																	// buffers
 		{
@@ -175,7 +175,7 @@ public class MyChannel extends NioChannel {
 																	// perte du
 																	// message
 																	// si non
-																	// dupliqué
+																	// dupliquï¿½
 
 				currentReadState = StatesForReading.stateReadingDone;
 			}
@@ -186,10 +186,10 @@ public class MyChannel extends NioChannel {
 	
 	
 	public boolean Automata_for_write() {
-		//Si il n'y a plus rien à envoyé, on retourne true
+		//Si il n'y a plus rien ï¿½ envoyï¿½, on retourne true
 		if(currentWriteState == StatesForWriting.stateWritingDone)
 		{
-			bufferSortieCourant = bufferSortie.pop();
+			bufferSortieCourant = getBufferSortie().pop();
 			bufferSortieCourant.position(0);
 			longueurBufferSortie.position(0);
 			longueurBufferSortie.putInt(bufferSortieCourant.capacity());
@@ -223,7 +223,15 @@ public class MyChannel extends NioChannel {
 		}
 		
 
-		return bufferSortie.size()==0;
+		return getBufferSortie().size()==0;
+	}
+
+	public LinkedList<ByteBuffer> getBufferSortie() {
+		return bufferSortie;
+	}
+
+	public void setBufferSortie(LinkedList<ByteBuffer> bufferSortie) {
+		this.bufferSortie = bufferSortie;
 	}
 	
 

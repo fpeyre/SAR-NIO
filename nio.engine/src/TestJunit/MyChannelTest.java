@@ -2,13 +2,24 @@ package TestJunit;
 
 import static org.junit.Assert.*;
 
+import java.io.IOException;
+import java.net.InetSocketAddress;
+import java.nio.ByteBuffer;
+import java.nio.channels.SocketChannel;
+
 import org.junit.Test;
+
+import ImplemClasses.MyChannel;
+import ImplemClasses.MyEngine;
 
 public class MyChannelTest {
 
 	@Test
-	public void testGetChannel() {
-		fail("Not yet implemented");
+	public void testGetChannel() throws Exception {
+		SocketChannel sockTest=SocketChannel.open();
+		MyEngine testEngine=new MyEngine();
+		MyChannel testChannel=new MyChannel(sockTest,testEngine);
+		assertTrue("renvoi du socket channel",testChannel.getChannel()==sockTest);
 	}
 
 	@Test
@@ -17,23 +28,36 @@ public class MyChannelTest {
 	}
 
 	@Test
-	public void testGetRemoteAddress() {
-		fail("Not yet implemented");
+	public void testGetRemoteAddress() throws Exception {
+		SocketChannel sockTest=SocketChannel.open();
+		MyEngine testEngine=new MyEngine();
+		MyChannel testChannel=new MyChannel(sockTest,testEngine);
+		assertTrue("renvoi de l'adresse",testChannel.getRemoteAddress()==(InetSocketAddress)sockTest.getRemoteAddress());
+		
 	}
 
 	@Test
-	public void testSendByteBuffer() {
-		fail("Not yet implemented");
+	public void testSendByteBuffer() throws Exception {
+		//Testé via testSendByteArrayIntInt	
 	}
 
 	@Test
-	public void testSendByteArrayIntInt() {
-		fail("Not yet implemented");
+	public void testSendByteArrayIntInt() throws Exception {
+		SocketChannel sockTest=SocketChannel.open();
+		MyEngine testEngine=new MyEngine();
+		MyChannel testChannel=new MyChannel(sockTest,testEngine);
+		String message = "Message test";
+		testChannel.setBufferSortie(null);
+		testChannel.send(message.getBytes(),0,message.getBytes().length);
+		assertTrue("buffersortie non vide",!testChannel.getBufferSortie().isEmpty());
 	}
 
 	@Test
-	public void testClose() {
-		fail("Not yet implemented");
+	public void testClose() throws Exception {
+		SocketChannel sockTest=SocketChannel.open();
+		MyEngine testEngine=new MyEngine();
+		MyChannel testChannel=new MyChannel(sockTest,testEngine);
+		assertTrue("fermeture socket",!sockTest.isOpen());
 	}
 
 	@Test

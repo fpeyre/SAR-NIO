@@ -25,17 +25,17 @@ public class MyEngine extends NioEngine {
 	Hashtable<SocketChannel, ByteBuffer> outBuffers;
 
 	Hashtable<SocketChannel, ConnectCallback> MappingConnectCallback;
-	Hashtable<ServerSocketChannel, MyServer> MappingServers;
+	private Hashtable<ServerSocketChannel, MyServer> MappingServers;
 	Hashtable<SocketChannel, MyChannel> MappingChannels;
 
 	public MyEngine() throws Exception {
 		super();
 		this.selector = Selector.open();
 
-		// Initialisation des différentes Hashtables
+		// Initialisation des diffï¿½rentes Hashtables
 		outBuffers = new Hashtable<SocketChannel, ByteBuffer>();
 		MappingConnectCallback = new Hashtable<SocketChannel, ConnectCallback>();
-		MappingServers = new Hashtable<ServerSocketChannel, MyServer>();
+		setMappingServers(new Hashtable<ServerSocketChannel, MyServer>());
 		MappingChannels = new Hashtable<SocketChannel, MyChannel>();
 	}
 
@@ -59,7 +59,7 @@ public class MyEngine extends NioEngine {
 					selectedKeys.remove();
 
 					if (!key.isValid()) {
-						System.out.println("Clé invalide");
+						System.out.println("Clï¿½ invalide");
 						continue;
 
 					} else if (key.isAcceptable()) {
@@ -109,9 +109,9 @@ public class MyEngine extends NioEngine {
 		server.setAcceptCallback(callback);
 
 		serverChannel.register(this.selector, SelectionKey.OP_ACCEPT);
-		System.out.println("ServerChannel bindé, enregistré dans le selector");
+		System.out.println("ServerChannel bindï¿½, enregistrï¿½ dans le selector");
 		
-		MappingServers.put(serverChannel, server);
+		getMappingServers().put(serverChannel, server);
 		return server;
 	}
 
@@ -162,15 +162,15 @@ public class MyEngine extends NioEngine {
 		socketChannel.register(this.selector, SelectionKey.OP_READ);
 		
 		System.out.println("Enregistrement du callback");
-		MyServer server = MappingServers.get(serverSocketChannel);
+		MyServer server = getMappingServers().get(serverSocketChannel);
 		AcceptCallback callback = server.getAcceptCallback();
 		
-		System.out.println("Création du channel et enregistrement dans la table");
+		System.out.println("Crï¿½ation du channel et enregistrement dans la table");
 		MyChannel myChannel = new MyChannel(socketChannel, this);
 		MappingChannels.put(socketChannel, myChannel);
 
 		System.out.println("Lancement du callback");
-		callback.accepted(MappingServers.get(serverSocketChannel), myChannel);
+		callback.accepted(getMappingServers().get(serverSocketChannel), myChannel);
 		}
 		catch(IOException e){
 			System.out.println("IO Exception : "+e.getMessage());
@@ -187,7 +187,7 @@ public class MyEngine extends NioEngine {
 		SocketChannel socketChannel = (SocketChannel) key.channel();
 
 		try {
-			System.out.println("On réalise le finishConnect");
+			System.out.println("On rï¿½alise le finishConnect");
 			socketChannel.finishConnect();
 		} catch (IOException e) {
 			// cancel the channel's registration with our selector
@@ -195,7 +195,7 @@ public class MyEngine extends NioEngine {
 			key.cancel();
 			return;
 		}
-		System.out.println("On change l'interestOps de la clé");
+		System.out.println("On change l'interestOps de la clï¿½");
 		key.interestOps(SelectionKey.OP_READ);
 		MyChannel myChannel = new MyChannel(socketChannel, this);
 		MappingChannels.put(socketChannel, myChannel);
@@ -243,6 +243,14 @@ public class MyEngine extends NioEngine {
 		} catch (ClosedChannelException e) {
 			e.printStackTrace();
 		}
+	}
+
+	public Hashtable<ServerSocketChannel, MyServer> getMappingServers() {
+		return MappingServers;
+	}
+
+	public void setMappingServers(Hashtable<ServerSocketChannel, MyServer> mappingServers) {
+		MappingServers = mappingServers;
 	}
 
 }
