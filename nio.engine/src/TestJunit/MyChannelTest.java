@@ -39,6 +39,7 @@ public class MyChannelTest {
 	@Test
 	public void testSendByteBuffer() throws Exception {
 		//Testé via testSendByteArrayIntInt	
+		fail("Not yet implemented");
 	}
 
 	@Test
@@ -47,7 +48,7 @@ public class MyChannelTest {
 		MyEngine testEngine=new MyEngine();
 		MyChannel testChannel=new MyChannel(sockTest,testEngine);
 		String message = "Message test";
-		testChannel.setBufferSortie(null);
+		
 		testChannel.send(message.getBytes(),0,message.getBytes().length);
 		assertTrue("buffersortie non vide",!testChannel.getBufferSortie().isEmpty());
 	}
