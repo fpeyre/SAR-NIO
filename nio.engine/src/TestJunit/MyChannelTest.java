@@ -58,6 +58,7 @@ public class MyChannelTest {
 		SocketChannel sockTest=SocketChannel.open();
 		MyEngine testEngine=new MyEngine();
 		MyChannel testChannel=new MyChannel(sockTest,testEngine);
+		testChannel.close();
 		assertTrue("fermeture socket",!sockTest.isOpen());
 	}
 
