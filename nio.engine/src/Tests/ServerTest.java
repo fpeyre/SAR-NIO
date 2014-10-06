@@ -2,6 +2,7 @@ package Tests;
 
 import java.io.IOException;
 import java.nio.ByteBuffer;
+
 import nio.engine.AcceptCallback;
 import nio.engine.DeliverCallback;
 import nio.engine.NioChannel;
@@ -22,12 +23,12 @@ public class ServerTest implements Runnable,AcceptCallback,DeliverCallback {
 	
 	@Override
 	public void run() {
-		System.out.println("Server lancé sur le port : "+portConnection);
+		System.out.println("Server lancï¿½ sur le port : "+portConnection);
 		NioEngine engine = null;
 		try {
 			engine = new MyEngine();
 		} catch (Exception e) {
-			System.out.println("Problème génération nouvel engine : "+e.getMessage());
+			System.out.println("Problï¿½me gï¿½nï¿½ration nouvel engine : "+e.getMessage());
 		}
 
 		try {
@@ -42,24 +43,39 @@ public class ServerTest implements Runnable,AcceptCallback,DeliverCallback {
 	}	
 	
 	@Override
+	
 	public void closed(NioChannel channel) {
-		System.out.println("AcceptCallback fermé");
+				
+		System.out.println("AcceptCallback fermï¿½");
 
 	}
 
 	@Override
 	public void accepted(NioServer server, NioChannel channel) {
-		System.out.println("AcceptCallback accepté");
+		System.out.println("AcceptCallback acceptï¿½");
 		channel.setDeliverCallback(this);
 	}
 
 
 	@Override
+	//Si le message CLOSEDCLIENT est recu, je ferme le channel
 	public void deliver(NioChannel channel, ByteBuffer bytes) {
-		System.out.println("Coté serveur : Message envoyé : "+ new String(bytes.array()));
-		String ping = "Message n°"+numMessage;
-		numMessage++;
-		channel.send(ping.getBytes(),0,ping.getBytes().length);
+		String msg_recu=new String(bytes.array());
+		if(msg_recu.equals("CLOSEDCLIENT")){
+			channel.close();
+		}
+		else{
+			System.out.println("Cotï¿½ serveur : Message envoyï¿½ : "+ msg_recu );
+			String ping = "Message nï¿½"+numMessage;
+			numMessage++;
+			if(numMessage==100){
+				channel.send("CLOSEDSERVER".getBytes(),0,"CLOSEDSERVER".getBytes().length);
+			}
+			else{
+				channel.send(ping.getBytes(),0,ping.getBytes().length);
+			}
+
+		}
 	}
 
 

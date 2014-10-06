@@ -110,6 +110,7 @@ public class MyChannel extends NioChannel {
 	@Override
 	public void send(byte[] bytes, int offset, int length) {
 
+		if(bytes.length <= length && offset < bytes.length){
 		int i;
 		ByteBuffer src = ByteBuffer.allocate(length);
 
@@ -118,6 +119,10 @@ public class MyChannel extends NioChannel {
 		}
 		src.toString();
 		send(src);
+		}
+		else {
+			NioEngine.panic("Erreur methode send(byte[] bytes, int offset, int length): condition bytes.length <= length && offset < bytes.length non respectee");
+		}
 
 	}
 
