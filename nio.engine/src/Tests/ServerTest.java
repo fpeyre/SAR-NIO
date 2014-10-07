@@ -23,12 +23,12 @@ public class ServerTest implements Runnable,AcceptCallback,DeliverCallback {
 	
 	@Override
 	public void run() {
-		System.out.println("Server lancï¿½ sur le port : "+portConnection);
+		System.out.println("Server lancé sur le port : "+portConnection);
 		NioEngine engine = null;
 		try {
 			engine = new MyEngine();
 		} catch (Exception e) {
-			System.out.println("Problï¿½me gï¿½nï¿½ration nouvel engine : "+e.getMessage());
+			System.out.println("Problème génération nouvel engine : "+e.getMessage());
 		}
 
 		try {
@@ -52,7 +52,7 @@ public class ServerTest implements Runnable,AcceptCallback,DeliverCallback {
 
 	@Override
 	public void accepted(NioServer server, NioChannel channel) {
-		System.out.println("AcceptCallback acceptï¿½");
+		System.out.println("AcceptCallback accepté");
 		channel.setDeliverCallback(this);
 	}
 
@@ -65,8 +65,8 @@ public class ServerTest implements Runnable,AcceptCallback,DeliverCallback {
 			channel.close();
 		}
 		else{
-			System.out.println("Cotï¿½ serveur : Message envoyï¿½ : "+ msg_recu );
-			String ping = "Message nï¿½"+numMessage;
+			System.out.println("Coté serveur : Message envoyé : "+ msg_recu );
+			String ping = "Message n°"+numMessage;
 			numMessage++;
 			if(numMessage==100){
 				channel.send("CLOSEDSERVER".getBytes(),0,"CLOSEDSERVER".getBytes().length);

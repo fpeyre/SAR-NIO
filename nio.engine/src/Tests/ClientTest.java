@@ -28,18 +28,18 @@ public class ClientTest implements Runnable, ConnectCallback, DeliverCallback {
 	public void run() {
 		@SuppressWarnings("unused")
 		NioChannel myChannel = null;
-		System.out.println("Le client va se connecter ï¿½ l'adresse "+addressConnection+" sur le port "+portConnection);
+		System.out.println("Le client va se connecter à l'adresse "+addressConnection+" sur le port "+portConnection);
 		NioEngine myEngine = null;
 		try {
 			myEngine = new MyEngine();
 		} catch (Exception e) {
-			System.out.println("Problï¿½me gï¿½nï¿½ration de l'engine : "+e.getMessage());
+			System.out.println("Problème génération de l'engine : "+e.getMessage());
 		}
 
 			try {
 				myEngine.connect(InetAddress.getByName(addressConnection), portConnection, this);
 			} catch (SecurityException | IOException e) {
-				System.out.println("Problï¿½me ï¿½ la connection "+e.getMessage());
+				System.out.println("Problème à la connection "+e.getMessage());
 			}
 
 			myEngine.mainloop();
@@ -49,7 +49,7 @@ public class ClientTest implements Runnable, ConnectCallback, DeliverCallback {
 	@Override
 	
 	public void closed(NioChannel channel) {		
-		System.out.println("ConnectCallback fermï¿½");
+		System.out.println("ConnectCallback fermé");
 
 	}
 
@@ -58,7 +58,7 @@ public class ClientTest implements Runnable, ConnectCallback, DeliverCallback {
 		System.out.println("ConnectCallback connected");
 		clientTestChannel = channel;
 		clientTestChannel.setDeliverCallback(this);
-		String message = "Message nï¿½"+numMessage;
+		String message = "Message n°"+numMessage;
 		numMessage++;
 		channel.send(message.getBytes(),0,message.getBytes().length);
 
@@ -73,8 +73,8 @@ public class ClientTest implements Runnable, ConnectCallback, DeliverCallback {
 			channel.close();	
 		}
 		else{
-			System.out.println("Cotï¿½ client : Message envoyï¿½ : "+ msg_send);
-			String message = "Message nï¿½"+numMessage;
+			System.out.println("Coté client : Message envoyé : "+ msg_send);
+			String message = "Message n°"+numMessage;
 			numMessage++;
 			channel.send(message.getBytes(),0,message.getBytes().length);
 		}
