@@ -1,0 +1,17 @@
+Ce fichier sert à décrire les algo ou les différentes facons dont sont gérer les pannes. A compléter au fur et a mesure.
+
+Connection au serveur avec plusieurs clients:
+
+Le serveur contient un annuaire des clients
+
+Quand un client se connecte, le serveur met à jour son annuaire. Au bout d'un moment on considére que la phase de connection est finie
+A ce moment le serveur envoit son annuaire a tout les clients connectés. Ainsi ,tout les clients connaissent tout les clients en vie.
+
+Si crash propre du client : le client informe le serv et les autres clients qu 'il se déco. MAJ des annuaires
+
+Si crash sale du client: une fois le crash identifié, le serveur met à jour son annuaire. Il communique cet annuaire a tout les clients
+connéctés qui n'ont pas forcement vu le crash du premier client.
+
+Si crash propre du serveur : le client se deconnecte du serveur et ne tente pas de se reco (correspond a la fin du programme)
+
+Si crash sale du serveur : le client va tenter de se reco au serveur. Quand le serv redémarre , il peut reconstruire son annuaire en voyant les clients qui ont co avec lui.
