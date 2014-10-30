@@ -6,15 +6,31 @@ Le serveur contient un annuaire des clients
 
 PAS IMPLEMENTER
 
-Quand un client se connecte, le serveur met à jour son annuaire. Au bout d'un moment on considére que la phase de connection est finie
-A ce moment le serveur envoit son annuaire a tout les clients connectés. Ainsi ,tout les clients connaissent tout les clients en vie.
+Quand un client se connecte, le serveur met à jour son annuaire. 
+Au bout d'un moment (2 minutes?) on considére que la phase de connection est finie.
+A ce moment le serveur envoit son annuaire a tout les clients connectés. 
+Ainsi ,tout les clients connaissent tout les clients en vie et on commence le multicast
 
 Si crash propre du client : le client informe le serv et les autres clients qu 'il se déco. MAJ des annuaires
 
 Si crash sale du client: une fois le crash identifié, le serveur met à jour son annuaire. Il communique cet annuaire a tout les clients
 connéctés qui n'ont pas forcement vu le crash du premier client.
 
-Si crash propre du serveur : le client se deconnecte du serveur et ne tente pas de se reco (correspond a la fin du programme)
+
+//A voir si on le fait. Le serveur est inutile une fois le multicast lancé
+Si crash propre du serveur : le client se deconnecte du serveur (message DISCONNECT)
+Il ne tente pas de se reco (correspond a la fin du programme)
 
 Si crash sale du serveur : le client va tenter de se reco au serveur. Quand le serv redémarre , il peut reconstruire son annuaire en voyant les clients qui sont co avec lui.Systéme de sauvegarde
-de l'annuaire? (du genre à chaque modif de l annuaire -> sauvegard edans un txt et a chaque redémarrage du serv, on lit l'annuaire dans ce txt.Le txt est vidée quand le serv deco proprement)
+de l'annuaire? (du genre à chaque modif de l annuaire -> sauvegarde dans un txt et a chaque redémarrage du serv, on lit l'annuaire dans ce txt.Le txt est vidée quand le serv deco proprement)
+
+Ajout d'un client :
+
+Via le serveur, le nouveau obtient l'annuaire
+Le nouveau dis à un ancien je veut rentrer.
+ L'ancien envoit ce message dans le cadre du multicast.
+ Les clients mettent a jour leurs adresse.
+ Les ack sont envoyé entre ancien.
+ Le prochain message sera envoyé au nouveau,qui en profite pour mettre à jour son horloge
+ 
+ Idée: utiliser message spéciale " NEWCONNECT" a parser à la reception puis à traiter
